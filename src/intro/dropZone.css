@@ -1,0 +1,39 @@
+h1, h2, h3, h4, p {
+	margin-top: 20px;
+	color: #fdfdfd;
+}
+
+
+.intro-container {
+	width: 800px;
+	margin: auto;
+}
+
+.intro-header {
+	background-image: url("sydney.png");
+	background-size: cover;
+	height: 140px;
+	padding: 20px;
+}
+
+.drop-zone {
+	border: 1px dashed white;
+	width: 300px;
+	text-align: center;
+}
+
+.final.drop-zone {
+	margin-left: 80px;
+	padding: 50px;
+}
+
+.header-text {
+}
+
+.header-text .drop-zone {
+	margin-left: 50px;
+}
+
+.intro-image {
+	width: 600px;
+}
