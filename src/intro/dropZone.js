@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { messageAction, geoJsonAction } from "../actions.js";
+import parser from "../parser.js";
 
 class DropZone extends Component {
 
@@ -29,5 +32,39 @@ class DropZone extends Component {
   }
 }
 
+const mapDispatchToProps = dispatch => {
+  return {
+    onFileDrop: (event) => {
+        console.log("Drop:", event);
+        event.stopPropagation();
+        event.preventDefault();
 
-export default DropZone;
+        let reader = new FileReader();
+        reader.onprogress = (event) => {
+            const percent = Math.floor((event.loaded / event.total) *100);
+            const message = `Loading File: ${percent}%`;
+
+            dispatch(messageAction(message));
+        };
+        reader.onload = (event) => {
+            let url = parser(event.target.result);
+            dispatch(geoJsonAction(url));
+        };
+
+        reader.readAsBinaryString(event.dataTransfer.files[0]);
+    }
+  }
+}
+
+const mapStateToProps = (state, ownProps) => {
+    return Object.assign({ 
+        message: state.message
+    }, ownProps);
+}
+
+const DropZoneContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DropZone)
+
+export default DropZoneContainer;

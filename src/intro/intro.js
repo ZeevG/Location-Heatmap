@@ -1,51 +1,19 @@
 import React from 'react';
-import { connect } from 'react-redux'
-import { messageAction, geoJsonAction } from "../actions.js";
-import parser from "../parser.js";
-import DropZone from "./dropZone.js";
+import { connect } from 'react-redux';
+
+import DropZoneContainer from "./dropZone.js";
 
 import takeout from "./takeout.png";
 import archive from "./archive.png";
 import download from "./download.png";
 import "./dropZone.css";
 
-const mapDispatchToProps = dispatch => {
-  return {
-    onFileDrop: (event) => {
-        console.log("Drop:", event);
-        event.stopPropagation();
-        event.preventDefault();
-
-        let reader = new FileReader();
-        reader.onprogress = (event) => {
-            const percent = Math.floor((event.loaded / event.total) *100);
-            const message = `Loading File: ${percent}%`;
-
-            dispatch(messageAction(message));
-        };
-        reader.onload = (event) => {
-            let url = parser(event.target.result);
-            dispatch(geoJsonAction(url));
-        };
-
-        reader.readAsBinaryString(event.dataTransfer.files[0]);
-    }
-  }
-}
-
-const mapStateToProps = (state, ownProps) => {
-    return Object.assign({ 
-        message: state.message
-    }, ownProps);
-}
-
-const DropZoneContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(DropZone)
-
 
 function IntroContainer(props) {
+    if(props.geoJsonUrl) {
+        return null;
+    }
+
     return(
         <div>
             <header className="intro-header">
@@ -85,5 +53,12 @@ function IntroContainer(props) {
     )
 }
 
+function mapStateToProps(state) {
+  return { 
+    geoJsonUrl: state.geoJsonUrl
+  }
+}
+const ConditionalIntroContainer = connect(mapStateToProps)(IntroContainer);
 
-export default IntroContainer;
+
+export default ConditionalIntroContainer;
