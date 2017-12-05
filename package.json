@@ -93,5 +93,5 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "homepage" : "http://zeevgilovitz.com/location-heatmap"
+  "homepage" : "https://zeevgilovitz.com/Location-Heatmap"
 }
