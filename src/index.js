@@ -6,7 +6,7 @@ import { MESSAGE_UPDATE, GEO_JSON, SET_STARTING_COORDS } from './actions.js';
 
 const INITIAL_STATE = {
     "geoJsonUrl": false,
-    "message": "Drop a location hitory file here.",
+    "message": "Drop a location history file here.",
     "startingCoords": []
 };
 
