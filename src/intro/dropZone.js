@@ -8,11 +8,16 @@ class DropZone extends Component {
   componentDidMount() {
     this.el.addEventListener("drop", this.props.onFileDrop);
     this.el.addEventListener("dragover", this.handleDragOver);
+
+    this.el2.addEventListener("change", this.props.onFileDrop);
+
   }
 
   componentWillUnmount() {
     this.el.removeEventListener("drop", this.props.onFileDrop);
     this.el.removeEventListener("dragover", this.handleDragOver);
+
+    this.el2.removeEventListener("change", this.props.onFileDrop);
   }
 
   handleDragOver = (event) => {
@@ -21,12 +26,23 @@ class DropZone extends Component {
     event.dataTransfer.dropEffect = 'copy';
   };
 
+  handleInputFile = (event) => {
+    this.props.onFileDrop({
+      'dataTransfer': {
+        'files': event.files
+      }
+    });
+  }
 
   render() {
     return (
-        <div className={this.props.className} ref={elem => this.el = elem}>
-         <p className="message">{this.props.message}</p>
-       </div>
+        <div>
+          <div className={this.props.className} ref={elem => this.el = elem}>
+           <p className="message">{this.props.message}</p>
+          </div>
+          <input type="file" ref={elem => this.el2 = elem} />
+        </div>
+
 
     );
   }
@@ -51,7 +67,14 @@ const mapDispatchToProps = dispatch => {
             dispatch(geoJsonAction(url));
         };
 
-        reader.readAsBinaryString(event.dataTransfer.files[0]);
+        let file;
+        if (event.target.files) {
+          file = event.target.files[0];
+        } else {
+          file = event.dataTransfer.files[0];
+        }
+
+        reader.readAsBinaryString(file);
     }
   }
 }
