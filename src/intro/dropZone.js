@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { messageAction, geoJsonAction } from "../actions.js";
 import parser from "../parser.js";
+import oboe from 'oboe';
 
 class DropZone extends Component {
 
@@ -50,21 +51,59 @@ class DropZone extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onFileDrop: (event) => {
+    onFileDrop: async (event) => {
         console.log("Drop:", event);
         event.stopPropagation();
         event.preventDefault();
 
-        let reader = new FileReader();
-        reader.onprogress = (event) => {
-            const percent = Math.floor((event.loaded / event.total) *100);
-            const message = `Loading File: ${percent}%`;
+        let textDecoder = new TextDecoder('utf-8');
 
-            dispatch(messageAction(message));
+        let reader = new FileReader();
+        reader.onloadend = (event) => {
+            let start = Date.now();
+            const byteLength = reader.result.byteLength;
+            const sliceSize = 1000000;
+            const slices = byteLength/sliceSize;
+            let oboeStream = new oboe();
+
+            let round = (value) => {
+                value = value * Math.pow(10, 4);
+                value = Math.round(value);
+                value = value / Math.pow(10, 4);
+                return value;
+            }
+
+            oboeStream.node('locations.*', (location) => {
+                if ( typeof location["latitudeE7"] === 'undefined') {
+                    return oboe.drop;
+                }
+
+                return {
+                    "latitude": round(location['latitudeE7'] / 10000000.0),
+                    "longitude": round(location['longitudeE7'] / 10000000.0)
+                }
+            }).done((data) => {
+                let url = parser(data.locations);
+                dispatch(geoJsonAction(url));
+                console.log("start: " + start);
+                console.log("end: " + Date.now());
+            })
+
+            for(let i = 0; i < slices; i++) {
+                setTimeout(function(){
+                    let jsonSlice = textDecoder.decode(reader.result.slice(i*sliceSize, (i+1)*sliceSize), {'stream': true});
+                    oboeStream.emit('data', jsonSlice);
+
+                    const percent = Math.floor((i / slices) * 100);
+                    const message = `Loading File: ${percent}%`;
+                    console.log(message)
+
+                    dispatch(messageAction(message));
+                }, 0);
+            }
         };
-        reader.onload = (event) => {
-            let url = parser(event.target.result);
-            dispatch(geoJsonAction(url));
+        reader.onerror = (event) => {
+            console.log("error yo");
         };
 
         let file;
@@ -74,13 +113,13 @@ const mapDispatchToProps = dispatch => {
           file = event.dataTransfer.files[0];
         }
 
-        reader.readAsBinaryString(file);
+        reader.readAsArrayBuffer(file);
     }
   }
 }
 
 const mapStateToProps = (state, ownProps) => {
-    return Object.assign({ 
+    return Object.assign({
         message: state.message
     }, ownProps);
 }

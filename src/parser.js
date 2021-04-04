@@ -4,9 +4,9 @@ import { messageAction, setStartingCoordsAction } from "./actions.js";
 function extractLatLng(locations) {
 
     let round = (value) => {
-        value = value * Math.pow(10, 4);
+        value = value * Math.pow(10, 6);
         value = Math.round(value);
-        value = value / Math.pow(10, 4);
+        value = value / Math.pow(10, 6);
         return value;
     }
 
@@ -39,7 +39,7 @@ function cluster(list) {
 
     let data = Object.entries(counts).map((entries) => {
         let lngLat = entries[0].split(",");
-        
+
         if (entries[1] >= highestCount.count) {
             highestCount = {
                 'coords': lngLat,
@@ -49,10 +49,10 @@ function cluster(list) {
 
         return {
             "geometry": {
-                "type": "Point", 
+                "type": "Point",
                 "coordinates": lngLat
             },
-            "type": "Feature", 
+            "type": "Feature",
             "properties": {
                 "count": entries[1]
             }
@@ -65,16 +65,13 @@ function cluster(list) {
 
 function wrapInGeoJson(features) {
     return {
-        "type": "FeatureCollection", 
+        "type": "FeatureCollection",
         features
     }
 }
 
-export default function parser(binaryString) {
-    let data = JSON.parse(binaryString);
-    data = extractLatLng(data['locations']);
-    data = removeEmpties(data);
-    data = cluster(data);
+export default function parser(locations) {
+    let data = cluster(locations);
     store.dispatch(messageAction(`Phew! ${data.length} locations...`));
     data = wrapInGeoJson(data);
 
